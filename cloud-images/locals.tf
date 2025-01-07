@@ -22,23 +22,23 @@ locals {
       checksum_algorithm = "sha256"
     }
 
-    rocky-8 = {
-      nodename           = ""
-      content_type       = "iso"
-      datastore          = "local"
-      url                = "https://dl.rockylinux.org/pub/rocky/8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2"
-      checksum           = ""
-      checksum_algorithm = "sha256"
-    }
+    # rocky-8 = {
+    #   nodename           = ""
+    #   content_type       = "iso"
+    #   datastore          = "local"
+    #   url                = "https://dl.rockylinux.org/pub/rocky/8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2"
+    #   checksum           = ""
+    #   checksum_algorithm = "sha256"
+    # }
 
-    rocky-9 = {
-      nodename           = ""
-      content_type       = "iso"
-      datastore          = "local"
-      url                = "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
-      checksum           = "069493fdc807300a22176540e9171fcff2227a92b40a7985a0c1c9e21aeebf57"
-      checksum_algorithm = "sha256"
-    }
+    # rocky-9 = {
+    #   nodename           = ""
+    #   content_type       = "iso"
+    #   datastore          = "local"
+    #   url                = "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+    #   checksum           = "069493fdc807300a22176540e9171fcff2227a92b40a7985a0c1c9e21aeebf57"
+    #   checksum_algorithm = "sha256"
+    # }
   }
 
   product = merge([
