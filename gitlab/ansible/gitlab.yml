@@ -1,0 +1,63 @@
+---
+
+- name: Install docker
+  hosts: all
+  become: true
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+    - name: Reboot server
+      ansible.builtin.reboot:
+        msg: "Rebooting server..."
+
+  roles:
+    - geerlingguy.docker
+
+  pre_tasks:
+    - name: Change ssh port
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#Port 22'
+        line: 'Port 2222'
+      notify: Restart sshd  
+
+  tasks:
+
+    - name: Add user in docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Create docker compose directory
+      ansible.builtin.file:
+        path: /home/ubuntu/gitlab
+        state: directory
+        mode: '0755'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Copy docker compose files
+      ansible.builtin.copy:
+        src: files/{{ item }}
+        dest: /home/ubuntu/gitlab/{{ item }}
+        mode: '0644'
+        owner: ubuntu
+        group: ubuntu
+      loop:
+        - compose.yml
+        - certs/
+
+    - name: Change ssh port to 2222
+      set_fact:
+        ansible_port: 2222
+
+    - name: Start docker compose
+      community.docker.docker_compose_v2:
+        project_src: /home/ubuntu/gitlab
+        state: present
+      notify: Reboot server

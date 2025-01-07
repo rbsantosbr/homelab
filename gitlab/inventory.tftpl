@@ -1,0 +1,4 @@
+[all]
+%{ for node in hosts ~}
+${ node.vm_name } ansible_host=${ node.vm_ip_address }
+%{ endfor ~}
