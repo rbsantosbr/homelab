@@ -1,0 +1,34 @@
+---
+- name: Kubespray requirements
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  remote_user: roberto
+  become: false
+  vars:
+    venvdir: kubespray-venv
+    kubespraydir: kubespray
+    cluster_name: k8s-cluster
+    working_dir: /home/roberto/DevOps/homelab
+  pre_tasks:
+    - name: Create kubespray cluster name folder
+      ansible.builtin.copy:
+        src: "../kubespray/inventory/sample/"
+        dest: "../kubespray/inventory/{{ cluster_name }}/"
+        mode: preserve
+    - name: Create virtualenv for kubespray
+      ansible.builtin.command:
+        cmd: python3 -m venv "../{{ venvdir }}"
+        creates: "{{ working_dir }}/{{ cluster_name }}/{{ venvdir }}"
+
+  tasks:
+    - name: Update pip
+      ansible.builtin.pip:
+        name: pip>24.0
+        virtualenv: "{{ working_dir }}/{{ cluster_name }}/{{ venvdir }}"
+
+    - name: Install specified python requirements kubespray-venv
+      ansible.builtin.pip:
+        requirements: "{{ working_dir }}/{{ cluster_name }}/{{ kubespraydir }}/requirements.txt"
+        virtualenv: "{{ working_dir }}/{{ cluster_name }}/{{ venvdir }}"
+

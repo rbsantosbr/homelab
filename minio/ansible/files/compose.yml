@@ -1,0 +1,29 @@
+---
+
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    command:
+      - server
+      - /data
+      - --console-address
+      - ":9001"
+    ports:
+      - 9000:9000
+      - 9001:9001
+    networks:
+      homelab:
+        aliases: 
+          - minio
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=${ADMIN_USER}
+      - MINIO_ROOT_PASSWORD=${ADMIN_USER_PASSWORD}
+      - MINIO_DEFAULT_BUCKETS=${DEFAULT_BUCKETS}
+
+networks:
+  homelab:
+
+volumes:
+  minio_data:
