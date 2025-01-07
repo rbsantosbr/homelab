@@ -5,12 +5,12 @@
   connection: local
   remote_user: roberto
   become: false
-  vars:
-    venvdir: kubespray-venv
-    kubespraydir: kubespray
-    cluster_name: k8s-cluster
-    working_dir: /home/roberto/DevOps/homelab
+
+  vars_files:
+    - vars.yml
+
   pre_tasks:
+    
     - name: Create kubespray cluster name folder
       ansible.builtin.copy:
         src: "../kubespray/inventory/sample/"
