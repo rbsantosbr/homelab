@@ -10,6 +10,7 @@ Tecnologias utilizadas:
 * Gitlab;
 * Kubernetes;
 * Minio;
+* Proxmox;
 * Terraform;
 * ...
 
