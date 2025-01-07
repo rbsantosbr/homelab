@@ -40,3 +40,6 @@ terraform.rc
 
 # Ansible Env Files
 ansible/files/*env
+
+# Plan files
+plan*
