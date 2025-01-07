@@ -40,3 +40,5 @@ terraform.rc
 
 # Plan files
 plan*
+
+../ansible/*tfstate
