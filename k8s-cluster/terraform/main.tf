@@ -19,7 +19,6 @@ resource "null_resource" "kubespray_requirements" {
     working_dir = "../ansible"
     command     = "ansible-playbook playbook.yml"
   }
-  # depends_on = [module.k8s_controlplane, module.k8s_worker, local_file.ansible_inventory]
 }
 
 resource "null_resource" "kubespray_install" {
