@@ -61,3 +61,16 @@
         project_src: /home/ubuntu/gitlab
         state: present
       notify: Reboot server
+
+    - name: Sleep for 90 seconds and continue with play
+      ansible.builtin.wait_for:
+        timeout: 90
+
+    - name: Capture root passwword
+      ansible.builtin.command:
+        cmd: docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password
+      register: initial_root_password
+
+    - name: Display root password
+      ansible.builtin.debug:
+        msg: "{{ initial_root_password.stdout }}"
