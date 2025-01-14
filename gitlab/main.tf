@@ -13,7 +13,7 @@ module "gitlab" {
     cores = 4
     type  = "x86-64-v2-AES"
   }
-  memory = 4096
+  memory = 8192
 
   agent = true
 
