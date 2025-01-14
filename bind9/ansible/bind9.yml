@@ -1,0 +1,150 @@
+---
+
+- name: Install docker
+  hosts: all
+  become: true
+  handlers:
+    - name: Restart resolved
+      ansible.builtin.service:
+        name: systemd-resolved
+        state: restarted
+
+  roles:
+    - geerlingguy.docker
+
+  tasks:
+
+    - name: Add user in docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Create docker compose directory
+      ansible.builtin.file:
+        path: /home/ubuntu/bind9
+        state: directory
+        mode: '0755'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Copy docker compose files
+      ansible.builtin.copy:
+        src: files/{{ item }}
+        dest: /home/ubuntu/bind9/{{ item }}
+        mode: '0644'
+        owner: ubuntu
+        group: ubuntu
+        force: false
+      loop:
+        - compose.yml
+        - etc/
+        - lib/
+
+    - name: Change owner lib directory to allow bind9 dynamic update
+      ansible.builtin.file:
+        path: /home/ubuntu/bind9/lib
+        owner: 100
+        group: 101
+        recurse: true
+
+    - name: Disable DNSStubListener and configure DNS
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/resolved.conf
+        regexp: "{{ item.regex }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regex: '^#DNSStubListener=yes', line: 'DNSStubListener=no' }
+      notify: Restart resolved
+
+    - name: Create a symlink to /etc/resolv.conf
+      ansible.builtin.file:
+        src: /run/systemd/resolve/resolv.conf
+        owner: root
+        group: root
+        dest: /etc/resolv.conf
+        state: link
+        mode: "0755"
+
+    - name: Force all notified handlers to run at this point, not waiting for normal sync points
+      ansible.builtin.meta: flush_handlers
+
+    - name: Start docker compose
+      community.docker.docker_compose_v2:
+        project_src: /home/ubuntu/bind9
+        state: present
+
+    - name: Create a dns tsig-key
+      ansible.builtin.command:
+        cmd: docker exec bind9 sh -c "tsig-keygen -a hmac-sha256 | tee /etc/bind/named.conf.key"
+      args:
+        chdir: /home/ubuntu/bind9/etc/
+        creates: /home/ubuntu/bind9/etc/named.conf.key
+
+    - name: Check if tsig-key file exists
+      ansible.builtin.stat:
+        path: /home/ubuntu/bind9/etc/named.conf.key
+      register: stdout
+
+    - name: Change dns config if tsig-key file exists
+      when: stdout.stat.exists
+      block:
+
+        - name: Include rndc controls
+          ansible.builtin.blockinfile:
+            path: /home/ubuntu/bind9/etc/named.conf
+            append_newline: true
+            prepend_newline: true
+            insertbefore: "acl internal {"
+            block: |
+              # Include rndc controls
+              controls {
+                  inet 127.0.0.1 port 953
+                  allow { 127.0.0.1; } keys { "tsig-key"; };
+              };
+
+        - name: Include rndc key
+          ansible.builtin.lineinfile:
+            path: "/home/ubuntu/bind9/etc/{{ item }}"
+            line: 'include "/etc/bind/named.conf.key";'
+            insertbefore: BOF
+          with_items:
+            - named.conf
+            - rndc.conf
+
+        - name: Restart bind9
+          ansible.builtin.command:
+            cmd: docker restart bind9
+          register: bind9_restart
+
+        - name: Debug
+          ansible.builtin.debug:
+            var: bind9_restart
+
+        - name: Check if bind9 is running
+          ansible.builtin.wait_for:
+            host: localhost
+            port: 53
+            delay: 5
+            timeout: 60
+            state: started
+          register: bind9_running
+
+        - name: Print tsig-key
+          ansible.builtin.shell: grep secret named.conf.key | cut -d " " -f 2 | tr -d ';' | tr -d '"'
+          args:
+            chdir: /home/ubuntu/bind9/etc/
+            executable: /bin/bash
+          register: tsig_key
+
+        - name: Print tsig-key
+          ansible.builtin.debug:
+            var: tsig_key.stdout
+
+        - name: Create a cron job to rndc
+          ansible.builtin.cron:
+            name: "rndc sync"
+            user: ubuntu
+            special_time: hourly
+            job: "docker exec -it bind9 rndc sync"
+            state: present

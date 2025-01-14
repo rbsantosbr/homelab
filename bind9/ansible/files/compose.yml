@@ -1,0 +1,30 @@
+---
+
+services:
+  bind9:
+    image: internetsystemsconsortium/bind9:9.20
+    container_name: bind9
+    restart: unless-stopped
+    hostname: bind9
+    networks:
+      bind9:
+        aliases:
+          - bind9
+    ports:
+      - '53:53'
+      - '53:53/udp'
+      - '953:953'
+    
+    shm_size: '256m'   
+    
+    volumes:
+      - ./etc:/etc/bind
+      - ./lib:/var/lib/bind
+      - bind9_cache:/var/cache/bind
+      - bind9_logs:/var/log/bind
+volumes:
+  bind9_cache:
+  bind9_logs:
+
+networks:
+  bind9:

@@ -1,0 +1,15 @@
+$TTL 7d
+
+$ORIGIN barrylabs.local.
+
+@                       IN      SOA     ns.barrylabs.local. info.barrylabs.local. (
+                                        20250115        ; serial
+                                        12h             ; refresh
+                                        15m             ; update retry
+                                        3w              ; expiry
+                                        2h              ; minimum
+                                        ) 
+;
+                        IN      NS      ns.barrylabs.local.
+ns                      IN      A       10.10.11.10
+;
