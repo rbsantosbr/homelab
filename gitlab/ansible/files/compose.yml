@@ -2,22 +2,17 @@
 
 services:
   gitlab:
-    image: gitlab/gitlab-ce:17.7.0-ce.0
+    image: gitlab/gitlab-ce:17.7.1-ce.0
     container_name: gitlab
     restart: unless-stopped
-    hostname: gitlab.barrylabs.local
+    hostname: gitlab
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         external_url 'https://gitlab.barrylabs.local'
-        letsencrypt['enable'] = false
-        nginx['listen_port'] = 443
-        nginx['listen_https'] = true
-        nginx['redirect_http_to_https'] = true
+        pages_external_url 'https://pages.gitlab.barrylabs.local'
         registry_external_url 'https://registry.gitlab.barrylabs.local'
-        registry_nginx['listen_port'] = 5005
-        registry_nginx['listen_https'] = false
-        gitlab_rails['gitlab_shell_ssh_port'] = 22
-        gitlab_rails['artifacts_enabled'] = true
+        nginx['redirect_http_to_https'] = true
+
     networks:
       gitlab:
         aliases:
@@ -27,8 +22,10 @@ services:
     ports:
       - '80:80'
       - '443:443'
-      - '5000:5005'
       - '22:22'
+    
+    shm_size: '256m'   
+    
     volumes:
       - gitlab_config:/etc/gitlab
       - gitlab_logs:/var/log/gitlab
@@ -46,14 +43,14 @@ services:
         aliases:
           - gitlab-runner
     volumes:
-      - gitlab-runner-config:/etc/gitlab-runner
+      - gitlab_runner_config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   gitlab_config:
   gitlab_logs:
   gitlab_data:
-  gitlab-runner-config:
+  gitlab_runner_config:
 
 networks:
   gitlab:
