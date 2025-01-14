@@ -3,6 +3,9 @@
 services:
   minio:
     image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: minio
+    hostname: minio
+    restart: unless-stopped
     command:
       - server
       - /data
