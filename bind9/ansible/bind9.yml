@@ -1,6 +1,6 @@
 ---
 
-- name: Install docker
+- name: Install bind9
   hosts: all
   become: true
   handlers:
@@ -28,7 +28,7 @@
         owner: ubuntu
         group: ubuntu
 
-    - name: Copy docker compose files
+    - name: Copy docker compose and bind9 files
       ansible.builtin.copy:
         src: files/{{ item }}
         dest: /home/ubuntu/bind9/{{ item }}
